@@ -2,6 +2,8 @@
 #include<stdlib.h>
 #include<string.h>
 #include"student.h"
+#include"command.h"
+
 
 int main(int argc, char* argv[]){
     if (argc < 2) {
@@ -42,8 +44,9 @@ int main(int argc, char* argv[]){
             break;
         }
 
-
-        printf("%s\n", input);
-
+        ShellResult result = cut_command(input, &head);
+        
+        if(result == SHELL_EXIT)
+            break;
     }
 }
