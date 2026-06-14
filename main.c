@@ -3,7 +3,7 @@
 #include<string.h>
 #include"student.h"
 #include"command.h"
-
+#include"file_io.h"
 
 int main(int argc, char* argv[]){
     if (argc < 2) {
@@ -26,7 +26,9 @@ int main(int argc, char* argv[]){
 #endif
     );
 
-    printf("Loaded students from %s\n",csv_name);
+    int cnt = loadCSV(csv_name, &head);
+
+    printf("Loaded %d students from %s\n",cnt,csv_name);
 
 
     char input[256];
