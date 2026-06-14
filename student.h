@@ -7,3 +7,7 @@ typedef struct Student
     int score;
     struct Student* next;
 }Student;
+
+
+void add(Student** head, int id, char* name, int score);
+void freeList(Student** head);
