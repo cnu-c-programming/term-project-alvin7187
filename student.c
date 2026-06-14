@@ -34,3 +34,11 @@ void freeList(Student** head){
     }
     *head = NULL;
 }
+
+void printList(Student* head){
+    Student* p = head;
+    while(p != NULL){
+        printf("%-10d %-20s %-10d\n",p->id, p->name, p->score);
+        p = p->next;
+    }
+}
