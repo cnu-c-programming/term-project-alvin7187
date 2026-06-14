@@ -11,3 +11,4 @@ typedef struct Student
 
 void add(Student** head, int id, char* name, int score);
 void freeList(Student** head);
+void printList(Student* head);
