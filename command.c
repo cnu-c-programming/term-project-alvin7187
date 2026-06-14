@@ -1,6 +1,7 @@
 #include<string.h>
 #include<stdio.h>
 #include"command.h"
+#include"student.h"
 
 #ifdef ADMIN_MODE
 Command commands[] = {
@@ -51,13 +52,30 @@ ShellResult handle_exit(char* para, Student** head){
     return SHELL_EXIT;
 }
 ShellResult handle_save(char* s, Student** head){return SHELL_OK;}
+
 ShellResult handle_add(char* s, Student** head){return SHELL_OK;}
+
 ShellResult handle_delete(char* s, Student** head){return SHELL_OK;}
+
 ShellResult handle_update(char* s, Student** head){return SHELL_OK;}
 
 ShellResult handle_reload(char* s, Student** head){return SHELL_OK;}
+
 ShellResult handle_find(char* s, Student** head){return SHELL_OK;}
-ShellResult handle_list(char* s, Student** head){return SHELL_OK;}
+
+ShellResult handle_list(char* s, Student** head){
+    if(*head == NULL){
+        printf("No students registered.\n");
+        return SHELL_OK;
+    }
+
+    printf("%-10s %-20s %-10s\n", "ID", "Name", "Score");
+    printList(*head);
+    return SHELL_OK;
+}
+
 ShellResult handle_stats(char* s, Student** head){return SHELL_OK;}
+
 ShellResult handle_help(char* s, Student** head){return SHELL_OK;}
+
 ShellResult handle_clear(char* s, Student** head){return SHELL_OK;}
