@@ -42,3 +42,14 @@ void printList(Student* head){
         p = p->next;
     }
 }
+
+int isDuplicate(Student* head, int nid){
+    Student* p = head;
+    while(p!=NULL){
+        if(p->id == nid){
+            return 1;
+        }
+        p = p->next;
+    }
+    return 0;
+}
