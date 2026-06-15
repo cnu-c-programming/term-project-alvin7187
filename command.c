@@ -1,5 +1,6 @@
 #include<string.h>
 #include<stdio.h>
+#include<stdlib.h>
 #include"command.h"
 #include"student.h"
 
@@ -53,7 +54,45 @@ ShellResult handle_exit(char* para, Student** head){
 }
 ShellResult handle_save(char* s, Student** head){return SHELL_OK;}
 
-ShellResult handle_add(char* s, Student** head){return SHELL_OK;}
+ShellResult handle_add(char* s, Student** head){
+    if(s == NULL || strlen(s) == 0){
+        printf("Error: Missing arguments.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    char* tid = strtok(s, " ");
+    char* name = strtok(NULL, " ");
+    char* tscore = strtok(NULL, " ");    
+
+    char* nam = strtok(NULL, " ");
+
+    if(tid == NULL || name == NULL || tscore == NULL || nam != NULL){
+        printf("Error: Invalid arguments.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    int id = atoi(tid);
+    int score = atoi(tscore);
+
+    if(id <= 0){
+        printf("Error: Invalid arguments.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if(isDuplicate(*head, id)){
+        printf("Error: Duplicate id.\n");
+        return SHELL_ERR_DUPLICATE_STUDENT;
+    }
+
+    if(score < 0 || score > 100){
+        printf("Error: Invalid score.\n");
+        return SHELL_ERR_INVALID_SCORE;
+    }   
+    
+    add(head, id, name, score);
+    printf("Student added.");
+    return SHELL_OK;
+}
 
 ShellResult handle_delete(char* s, Student** head){return SHELL_OK;}
 
