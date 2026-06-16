@@ -1,139 +1,101 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "student.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include"student.h"
+#include"command.h"
+#include"file_io.h"
 
-void add(Student** head, int nid, char* nname, int nscore){
-    Student* newNode = (Student*)malloc(sizeof(Student));
-    if(!newNode) return;
+char csv_name[256] = {0};
 
-    newNode->id = nid;
-    newNode->score = nscore;
-    newNode->next = NULL;
-    strncpy(newNode->name,nname,sizeof(newNode->name)-1);
-    newNode->name[sizeof(newNode->name) -1 ] = '\0';
-
-    if(*head == NULL){
-        *head = newNode;
-        return;
+int main(int argc, char* argv[]){
+    if (argc < 2 || (argc == 3) || (argc == 4 && strcmp(argv[2], "-f") != 0) || argc > 4) {
+#ifdef ADMIN_MODE
+        fprintf(stderr, "Usage: ./admin_shell <csv_file> [-f command_file]\n");
+#else
+        fprintf(stderr, "Usage: ./client_shell <csv_file> [-f command_file]\n");
+#endif
+        return -1;
     }
 
-    Student* p = *head;
-    while(p->next != NULL){
-        p = p->next;
-    }
-    p->next = newNode;
-}
+    strncpy(csv_name, argv[1], sizeof(csv_name) - 1);
 
-void freeList(Student** head){
-    Student* p = *head;
-    while(p!=NULL){
-        Student* n = p->next;
-        free(p);
-        p = n;
-    }
-    *head = NULL;
-}
+    FILE* commandFile = stdin;
+    int iscommandFile = 0;
 
-void printList(Student* head){
-    Student* p = head;
-    while(p != NULL){
-        printf("%-10d %-20s %-10d\n",p->id, p->name, p->score);
-        p = p->next;
-    }
-}
-
-int isDuplicate(Student* head, int nid){
-    Student* p = head;
-    while(p!=NULL){
-        if(p->id == nid){
-            return 1;
+    if (argc == 4 && strcmp(argv[2], "-f") == 0) {
+        commandFile = fopen(argv[3], "r");
+        if (commandFile == NULL) {
+            printf("Error: Cannot open command file %s\n", argv[3]);
+            return -1;
         }
-        p = p->next;
+        iscommandFile = 1;
     }
+
+    Student* head = NULL;
+
+    int cnt = loadCSV(csv_name, &head);
+
+    if (cnt < 0) {
+        printf("Error: csv open fail.\n");
+    }
+
+    printf("[%s]\n", 
+#ifdef ADMIN_MODE
+           "Admin Program"
+#else
+           "Client Program"
+#endif
+    );
+
+    printf("Loaded %d students from %s\n\n",cnt,csv_name);
+
+
+    char input[256];
+    int cnt1 = 0;
+
+    while(1){
+        if(!iscommandFile){
+#ifdef ADMIN_MODE
+        printf("admin> ");
+#else
+        printf("client> ");
+#endif
+
+        fflush(stdout);
+        }
+
+        if(fgets(input, sizeof(input), commandFile) == NULL)
+            break;
+
+        input[strcspn(input, "\n")] = '\0';
+
+        int blank = 1;
+        for(int i = 0; input[i] != '\0'; i++){
+            if(input[i] != ' ' && input[i] != '\t'){ blank = 0; break; }
+        }
+        if(blank || input[0] == '#') continue;
+
+        cnt1++;
+
+        if(iscommandFile){
+            printf("[command file:%d] %s\n", cnt1, input);
+        }
+
+        ShellResult result = cut_command(input, &head);
+
+        printf("\n");
+
+        if(iscommandFile && result != SHELL_OK && result != SHELL_EXIT)
+            printf("Skipped line %d\n\n", cnt1);
+
+        if(result == SHELL_EXIT)
+            break;
+    }
+
+    if (iscommandFile && commandFile != NULL) {
+        fclose(commandFile);
+    }
+
+    freeList(&head);
     return 0;
-}
-
-int updateList(Student* head, int id, int score){
-    Student* p = head;
-
-    while(p != NULL){
-        if(p->id == id){
-            p->id = id;
-            p->score = score;
-            return 1;
-        }
-        p = p -> next;
-    }
-    return 0;
-}
-
-Student* findList(Student* head, int id){
-    Student* p = head;
-    while(p != NULL){
-        if(p->id == id)
-            return p;
-        p = p->next;
-    }
-
-    return NULL;
-}
-
-
-
-int calculateList(Student* head, StatResult* res){
-    if(head == NULL)
-        return 0;
-
-    res->count = 0;
-    int sum = 0;
-    res->max = -1;
-    res->min = 101;
-
-    Student* curr = head;
-    while (curr != NULL) {
-        res->count++;
-        sum += curr->score;
-
-        if (curr->score > res->max) {
-            res->max = curr->score;
-        }
-        if (curr->score < res->min) {
-            res->min = curr->score;
-        }
-
-        curr = curr->next;
-    }
-
-    res->average = (double)sum / res->count;
-    return 1;
-}
-
-int deleteList(Student** head, int id){
-    if(*head == NULL){
-        return 0;
-    }
-
-    Student* now = *head;
-    Student* prev = NULL;
-
-    if (now != NULL && now->id == id) {
-        *head = now->next;
-        free(now);
-        return 1;
-    }
-
-    while (now != NULL && now->id != id) {
-        prev = now;
-        now = now->next;
-    }
-
-    if (now == NULL) {
-        return 0;
-    }
-
-    
-    prev->next = now->next;
-    free(now);
-    return 1;
 }
