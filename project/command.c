@@ -94,7 +94,7 @@ ShellResult handle_add(char* s, Student** head){
     int score = atoi(tscore);
 
     if(id <= 0){
-        printf("Error: Invalid arguments.\n");
+        printf("Error: Invalid id.\n");
         return SHELL_ERR_INVALID_ARGUMENT;
     }
 
@@ -113,13 +113,130 @@ ShellResult handle_add(char* s, Student** head){
     return SHELL_OK;
 }
 
-ShellResult handle_delete(char* s, Student** head){return SHELL_OK;}
+ShellResult handle_delete(char* s, Student** head){
+    if (s == NULL || strlen(s) == 0) {
+        printf("Error: Missing arguments.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
 
-ShellResult handle_update(char* s, Student** head){return SHELL_OK;}
+    char* tid = strtok(s, " ");
+    char* nam = strtok(NULL, " ");
 
-ShellResult handle_reload(char* s, Student** head){return SHELL_OK;}
+    if (tid == NULL || nam != NULL) {
+        printf("Error: Invalid arguments.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
 
-ShellResult handle_find(char* s, Student** head){return SHELL_OK;}
+    int id = atoi(tid);
+    if (id <= 0) {
+        printf("Error: Invalid id.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (deleteList(head, id)) {
+        printf("Student deleted.\n");
+        return SHELL_OK;
+    } else {
+        printf("Error: student not found.\n");
+        return SHELL_ERR_STUDENT_NOT_FOUND;
+    }
+}
+
+ShellResult handle_update(char* s, Student** head){
+    if(s == NULL || strlen(s) == 0){
+        printf("Error: Missing arguments.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    char* tid = strtok(s, " ");
+    char* tscore = strtok(NULL, " ");    
+
+    char* nam = strtok(NULL, " ");
+
+    if(tid == NULL || tscore == NULL || nam != NULL){
+        printf("Error: Invalid arguments.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    int id = atoi(tid);
+    int score = atoi(tscore);
+
+    if(id<=0){
+        printf("Error: Invalid id.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (score < 0 || score > 100) {
+        printf("Error: Invalid score.\n");
+        return SHELL_ERR_INVALID_SCORE;
+    }
+
+    if(updateList(*head, id, score)){
+        printf("Student updated.\n");
+        return SHELL_OK;
+    }else{
+        printf("Error: student not found.\n");
+        return SHELL_ERR_STUDENT_NOT_FOUND;
+    }
+}
+
+ShellResult handle_reload(char* s, Student** head){
+    if (s != NULL && strlen(s) > 0) {
+        char* nam = strtok(s, " ");
+        if (nam != NULL) {
+            printf("Error: Invalid arguments.\n");
+            return SHELL_ERR_INVALID_ARGUMENT;
+        }
+    }
+
+    freeList(head);
+    if (loadCSV(csv_name, head) >= 0) {
+        int count = 0;
+        Student* curr = *head;
+        while (curr != NULL) {
+            count++;
+            curr = curr->next;
+        }
+        printf("Reloaded %d students from %s.\n", count, csv_name);
+        return SHELL_OK;
+    } else {
+        printf("Error: csv load fail.\n");
+        return SHELL_ERR_FILE_OPEN;
+    }
+}
+
+ShellResult handle_find(char* s, Student** head){
+    if(s == NULL || strlen(s) == 0){
+        printf("Error: Missing arguments.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    char* tid = strtok(s, " ");
+    char* nam = strtok(NULL, " ");
+
+    if (tid == NULL || nam != NULL) {
+        printf("Error: Invalid or missing arguments.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    int id = atoi(tid);
+    if (id <= 0) {
+        printf("Error: Invalid id.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    Student* target = findList(*head, id);
+
+    if(target != NULL){
+        printf("ID: %d\n", target->id);
+        printf("Name: %s\n", target->name);
+        printf("Score: %d\n", target->score);
+        return SHELL_OK;
+    }else{
+        printf("Error: student not found.\n");
+        return SHELL_ERR_STUDENT_NOT_FOUND;
+    }
+}
 
 ShellResult handle_list(char* s, Student** head){
     if(*head == NULL){
@@ -132,7 +249,28 @@ ShellResult handle_list(char* s, Student** head){
     return SHELL_OK;
 }
 
-ShellResult handle_stats(char* s, Student** head){return SHELL_OK;}
+ShellResult handle_stats(char* s, Student** head){
+    if (s != NULL && strlen(s) > 0) {
+        char* nam = strtok(s, " ");
+        if (nam != NULL) {
+            printf("Error: Invalid arguments.\n");
+            return SHELL_ERR_INVALID_ARGUMENT;
+        }
+    }
+
+    StatResult res;
+    if (calculateList(*head, &res) == 0) {
+        printf("No student data available.\n");
+        return SHELL_OK;
+
+    }
+    printf("Count: %d\n", res.count);
+    printf("Average: %.1f\n", res.average);
+    printf("Max: %d\n", res.max);
+    printf("Min: %d\n", res.min);
+
+    return SHELL_OK;
+}
 
 ShellResult handle_help(char* s, Student** head){
     printf("Commands:\n");
@@ -142,4 +280,17 @@ ShellResult handle_help(char* s, Student** head){
     return SHELL_OK;
 }
 
-ShellResult handle_clear(char* s, Student** head){return SHELL_OK;}
+ShellResult handle_clear(char* s, Student** head){
+    if (s != NULL && strlen(s) > 0) {
+        char* nam = strtok(s, " ");
+        if (nam != NULL) {
+            printf("Error: Invalid arguments.\n");
+            return SHELL_ERR_INVALID_ARGUMENT;
+        }
+    }
+
+    printf("\033[2J\033[H");
+    fflush(stdout); 
+
+    return SHELL_OK;
+}
