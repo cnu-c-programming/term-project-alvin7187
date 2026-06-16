@@ -210,7 +210,7 @@ ShellResult handle_reload(char* s, Student** head){
             count++;
             curr = curr->next;
         }
-        printf("Reloaded %d students from %s.", count, csv_name);
+        printf("Reloaded %d students from %s.\n", count, csv_name);
         return SHELL_OK;
     } else {
         printf("Error: csv load fail.");
