@@ -64,24 +64,24 @@ int main(int argc, char* argv[]){
         fflush(stdout);
         }
 
-        if(fgets(input, sizeof(input), commandFile) == NULL){
-            if(iscommandFile) break;
+        if(fgets(input, sizeof(input), commandFile) == NULL)
+            break;
 
-            continue;
-        }
+        if(input[0] == '\n') continue;
 
         cnt1++;
-        
-        if (iscommandFile) {
+
+        if(iscommandFile){
             printf("[command file:%d] %s", cnt1, input);
-            if (input[strlen(input) - 1] != '\n') {
-                printf("\n");
-            }
+            if(input[strlen(input)-1] != '\n') printf("\n");
         }
 
         ShellResult result = cut_command(input, &head);
-        
+
         printf("\n");
+
+        if(iscommandFile && result != SHELL_OK && result != SHELL_EXIT)
+            printf("Skipped line %d\n\n", cnt1);
 
         if(result == SHELL_EXIT)
             break;
