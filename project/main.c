@@ -8,16 +8,29 @@
 char csv_name[256] = {0};
 
 int main(int argc, char* argv[]){
-    if (argc < 2) {
+    if (argc < 2 || (argc == 3) || (argc == 4 && strcmp(argv[2], "-f") != 0) || argc > 4) {
 #ifdef ADMIN_MODE
         fprintf(stderr, "Usage: ./admin_shell <csv_file> [-f command_file]\n");
 #else
         fprintf(stderr, "Usage: ./client_shell <csv_file> [-f command_file]\n");
 #endif
-        return 1;
+        return -1;
     }
 
     strncpy(csv_name, argv[1], sizeof(csv_name) - 1);
+
+    FILE* commandFile = stdin;
+    int iscommandFile = 0;
+
+    if (argc == 4 && strcmp(argv[2], "-f") == 0) {
+        commandFile = fopen(argv[3], "r");
+        if (commandFile == NULL) {
+            printf("Error: Cannot open command file %s\n", argv[3]);
+            return -1;
+        }
+        iscommandFile = 1;
+    }
+
     Student* head = NULL;
 
     int cnt = loadCSV(csv_name, &head);
@@ -34,13 +47,14 @@ int main(int argc, char* argv[]){
 #endif
     );
 
-    
-
-    printf("Loaded %d students from %s\n",cnt,csv_name);
+    printf("Loaded %d students from %s\n\n",cnt,csv_name);
 
 
     char input[256];
+    int cnt1 = 0;
+
     while(1){
+        if(!iscommandFile){
 #ifdef ADMIN_MODE
         printf("admin> ");
 #else
@@ -48,15 +62,35 @@ int main(int argc, char* argv[]){
 #endif
 
         fflush(stdout);
+        }
 
-        if(fgets(input, sizeof(input), stdin) == NULL){
-            printf("\n");
-            break;
+        if(fgets(input, sizeof(input), commandFile) == NULL){
+            if(iscommandFile) break;
+
+            continue;
+        }
+
+        cnt1++;
+        
+        if (iscommandFile) {
+            printf("[command file:%d] %s", cnt1, input);
+            if (input[strlen(input) - 1] != '\n') {
+                printf("\n");
+            }
         }
 
         ShellResult result = cut_command(input, &head);
         
+        printf("\n");
+
         if(result == SHELL_EXIT)
             break;
     }
+
+    if (iscommandFile && commandFile != NULL) {
+        fclose(commandFile);
+    }
+
+    freeList(&head);
+    return 0;
 }
