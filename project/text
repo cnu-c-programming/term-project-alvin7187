@@ -1,1 +1,6 @@
-
+list
+stats
+add 5 Eve 101
+list
+save
+exit
